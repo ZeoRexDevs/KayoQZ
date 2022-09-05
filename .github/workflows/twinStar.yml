@@ -1,0 +1,192 @@
+name: twinStar KayoQZ
+
+on:
+  workflow_dispatch:
+    inputs:
+      EpCode:
+        description: "EpCode, 01..50"
+        required: true
+        default: 01
+        type: number
+      SpeedProf:
+        description: "SpeedProf"
+        required: true
+        default: "2x450"
+        type: choice
+        options:
+        - "0x576"
+        - "3x576"
+        - "2x576"
+        - "0x450"
+        - "3x450"
+        - "2x450"
+      JobSequence:
+        description: "JobSequence"
+        required: true
+        type: number
+        default: 0
+      QCTest:
+        description: "Enable QC Check?"
+        required: true
+        type: boolean
+        default: false
+
+env:
+  SOURCERY: ${{ secrets.SOURCERY }}
+  LocationOnIndex: "td:/Twin.Star.Exorcists"
+  AniName: "Twin.Star.Exorcists"
+  AniCode: "twinStar"
+  EpCode: ${{ github.event.inputs.EpCode }}
+  SpeedProf: ${{ github.event.inputs.SpeedProf }}
+  JobSequence: ${{ github.event.inputs.JobSequence }}
+  RCLONE_CONFIG_URL: ${{ secrets.RCLONE_CONFIG_URL }}
+
+jobs:
+  primary:
+    name: Prepare Steps for R3Encod3r
+    runs-on: ubuntu-22.04
+
+    outputs:
+      EncSpeed: ${{ steps.set-params.outputs.EncSpeed }}
+      R3NC0D3R: ${{ steps.set-params.outputs.R3NC0D3R }}
+      VidRes: ${{ steps.set-params.outputs.VidRes }}
+      APIState: ${{ steps.set-params.outputs.APIState }}
+      finalChunk: ${{ steps.set-params.outputs.finalChunk }}
+      matrix: ${{ steps.set-params.outputs.matrix }}
+      safile_json: ${{ steps.set-params.outputs.safile_json }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: 'main'
+      - name: GitHub Auth
+        uses: rokibhasansagar/custom_workflows/git_config@main
+        env:
+          PAT: ${{ secrets.GH_TOKEN }}
+      - name: Checkout EncToolZ
+        env:
+          ReqdEncToolZ: "rtools"
+        run: |
+          eval 'set -eo pipefail' 2>/dev/null && eval 'set +o history' 2>/dev/null
+          echo "$SOURCERY" | base64 -d > SOURCERY && source ./SOURCERY &>/dev/null
+          rm -f ./SOURCERY && eval 'set -o history' 2>/dev/null
+          DEOBFUS ./21-EncTool-b473ab7b69f5
+      - name: Create EncMatrix
+        run: |
+          eval 'set -eo pipefail' 2>/dev/null && eval 'set +o history' 2>/dev/null
+          echo "$SOURCERY" | base64 -d > SOURCERY && source ./SOURCERY &>/dev/null
+          rm -f ./SOURCERY && eval 'set -o history' 2>/dev/null
+          DEOBFUS ./41-EncMtrx-992e65a52755
+      - name: Export Parameters
+        id: set-params
+        run: |
+          echo "::set-output name=EncSpeed::${EncSpeed}"
+          echo "::set-output name=R3NC0D3R::${R3NC0D3R}"
+          echo "::set-output name=VidRes::${VidRes}"
+          echo "::set-output name=APIState::${APIState}"
+          echo "::set-output name=finalChunk::${finalChunk}"
+          echo "::set-output name=matrix::${matrix}"
+          echo "::set-output name=safile_json::${safile_json}"
+
+  enc_kayoanime:
+    name: Encode Phase
+    runs-on: ubuntu-22.04
+    needs: primary
+
+    strategy:
+      fail-fast: false
+      max-parallel: 7
+      matrix:
+        ChunkNum: ${{fromJson(needs.primary.outputs.matrix)}}
+
+    env:
+      ChunkNum: ${{ matrix.ChunkNum }}
+      EncSpeed: ${{ needs.primary.outputs.EncSpeed }}
+      R3NC0D3R: ${{ needs.primary.outputs.R3NC0D3R }}
+      VidRes: ${{ needs.primary.outputs.VidRes }}
+      QCTest: ${{ github.event.inputs.QCTest }}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: 'main'
+      - name: GitHub Auth
+        uses: rokibhasansagar/custom_workflows/git_config@main
+        env:
+          PAT: ${{ secrets.GH_TOKEN }}
+      - name: Checkout EncToolZ
+        env:
+          ReqdEncToolZ: "ftools rtools"
+          safile_json: ${{ needs.primary.outputs.safile_json }}
+        run: |
+          eval 'set -eo pipefail' 2>/dev/null && eval 'set +o history' 2>/dev/null
+          echo "$SOURCERY" | base64 -d > SOURCERY && source ./SOURCERY &>/dev/null
+          rm -f ./SOURCERY && eval 'set -o history' 2>/dev/null
+          DEOBFUS ./21-EncTool-b473ab7b69f5
+      - name: ${{env.R3NC0D3R}} R3NC0D3R - Chunk_${{env.ChunkNum}} of ${{env.AniCode}} - Ep${{env.EpCode}}
+        run: |
+          eval 'set -eo pipefail' 2>/dev/null && eval 'set +o history' 2>/dev/null
+          echo "$SOURCERY" | base64 -d > SOURCERY && source ./SOURCERY &>/dev/null
+          rm -f ./SOURCERY && eval 'set -o history' 2>/dev/null
+          DEOBFUS ./68-EncPreW-0bb0bb1b6ca5
+          DEOBFUS ./71-Enc2AIO-78605f212f8a
+          if [[ ${QCTest} == true ]]; then
+            DEOBFUS ./79-EncRehq-70ff84d69bfa
+            if [[ ${R3C0D3} == true ]]; then
+              DEOBFUS ./71-Enc2AIO-78605f212f8a
+              DEOBFUS ./77-EncVMAF-e0b7ebdeae84 2>/dev/null || true
+            fi
+          else
+            DEOBFUS ./77-EncVMAF-e0b7ebdeae84 2>/dev/null || true
+          fi
+          DEOBFUS ./89-EncUpld-3a2d6e66703c
+
+  postEnc:
+    name: Loop or Merge
+    runs-on: ubuntu-22.04
+    needs: [primary, enc_kayoanime]
+
+    env:
+      APIState: ${{ needs.primary.outputs.APIState }}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: 'main'
+      - name: Trigger Another Workflow for ${{env.AniCode}} - Ep${{env.EpCode}}
+        if: env.APIState == 'trigger'
+        env:
+          GH_TOKEN2: ${{ secrets.GH_TOKEN2 }}
+          GH_TOKEN3: ${{ secrets.GH_TOKEN3 }}
+          QCTest: ${{ github.event.inputs.QCTest }}
+        run: |
+          eval 'set -eo pipefail' 2>/dev/null && eval 'set +o history' 2>/dev/null
+          echo "$SOURCERY" | base64 -d > SOURCERY && source ./SOURCERY &>/dev/null
+          rm -f ./SOURCERY && eval 'set -o history' 2>/dev/null
+          DEOBFUS ./97-EncSqnc-00e78d1bd279
+      - name: GitHub Auth
+        uses: rokibhasansagar/custom_workflows/git_config@main
+        if: env.APIState == 'merge'
+        env:
+          PAT: ${{ secrets.GH_TOKEN }}
+      - name: Checkout EncToolZ
+        if: env.APIState == 'merge'
+        env:
+          ReqdEncToolZ: "ftools mtools rtools"
+          safile_json: ${{ needs.primary.outputs.safile_json }}
+        run: |
+          eval 'set -eo pipefail' 2>/dev/null && eval 'set +o history' 2>/dev/null
+          echo "$SOURCERY" | base64 -d > SOURCERY && source ./SOURCERY &>/dev/null
+          rm -f ./SOURCERY && eval 'set -o history' 2>/dev/null
+          DEOBFUS ./21-EncTool-b473ab7b69f5
+      - name: Merge Whole Episode of ${{env.AniCode}} - Ep${{env.EpCode}}
+        if: env.APIState == 'merge'
+        env:
+          R3NC0D3R: ${{ needs.primary.outputs.R3NC0D3R }}
+          VidRes: ${{ needs.primary.outputs.VidRes }}
+          finalChunk: ${{ needs.primary.outputs.finalChunk }}
+          EncSpeed: ${{ needs.primary.outputs.EncSpeed }}
+        run: |
+          eval 'set -eo pipefail' 2>/dev/null && eval 'set +o history' 2>/dev/null
+          echo "$SOURCERY" | base64 -d > SOURCERY && source ./SOURCERY &>/dev/null
+          rm -f ./SOURCERY && eval 'set -o history' 2>/dev/null
+          DEOBFUS ./91-EncMrgr-9fd78a7cecf9
