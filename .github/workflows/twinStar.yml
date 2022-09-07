@@ -6,7 +6,6 @@ on:
       EpCode:
         description: "EpCode, 01..50"
         required: true
-        default: 01
         type: number
       SpeedProf:
         description: "SpeedProf"
