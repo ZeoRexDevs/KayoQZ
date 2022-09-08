@@ -29,6 +29,10 @@ on:
         required: true
         type: boolean
         default: false
+      RedoChunkList:
+        description: "Redo ChunkList (Opt)"
+        required: false
+        type: string
 
 env:
   SOURCERY: ${{ secrets.SOURCERY }}
@@ -70,6 +74,8 @@ jobs:
           rm -f ./SOURCERY && eval 'set -o history' 2>/dev/null
           DEOBFUS ./21-EncTool-b473ab7b69f5
       - name: Create EncMatrix
+        env:
+          RedoChunkMatrix: ${{ github.event.inputs.RedoChunkList }}
         run: |
           eval 'set -eo pipefail' 2>/dev/null && eval 'set +o history' 2>/dev/null
           echo "$SOURCERY" | base64 -d > SOURCERY && source ./SOURCERY &>/dev/null
