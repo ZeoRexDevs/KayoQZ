@@ -19,11 +19,6 @@ on:
         - "0x450"
         - "3x450"
         - "2x450"
-      RoughQuality:
-        description: "Lower Quality?"
-        required: true
-        type: boolean
-        default: false
       JobSequence:
         description: "JobSequence"
         required: true
@@ -31,7 +26,12 @@ on:
         default: 0
       QCTest:
         description: "Enable QC Check?"
-        required: true
+        required: false
+        type: boolean
+        default: false
+      RoughQuality:
+        description: "Lower Quality?"
+        required: false
         type: boolean
         default: false
       RedoChunkList:
