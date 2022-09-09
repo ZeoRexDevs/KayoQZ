@@ -19,6 +19,11 @@ on:
         - "0x450"
         - "3x450"
         - "2x450"
+      RoughQuality:
+        description: "Lower Quality?"
+        required: true
+        type: boolean
+        default: false
       JobSequence:
         description: "JobSequence"
         required: true
@@ -99,7 +104,7 @@ jobs:
 
     strategy:
       fail-fast: false
-      max-parallel: 7
+      max-parallel: 8
       matrix:
         ChunkNum: ${{fromJson(needs.primary.outputs.matrix)}}
 
@@ -108,6 +113,7 @@ jobs:
       EncSpeed: ${{ needs.primary.outputs.EncSpeed }}
       R3NC0D3R: ${{ needs.primary.outputs.R3NC0D3R }}
       VidRes: ${{ needs.primary.outputs.VidRes }}
+      RoughQuality: ${{ github.event.inputs.RoughQuality }}
       QCTest: ${{ github.event.inputs.QCTest }}
 
     steps:
@@ -155,6 +161,7 @@ jobs:
 
     env:
       APIState: ${{ needs.primary.outputs.APIState }}
+      RoughQuality: ${{ github.event.inputs.RoughQuality }}
 
     steps:
       - uses: actions/checkout@v3
