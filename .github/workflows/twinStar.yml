@@ -133,17 +133,20 @@ jobs:
           echo "$SOURCERY" | base64 -d > SOURCERY && source ./SOURCERY &>/dev/null
           rm -f ./SOURCERY && eval 'set -o history' 2>/dev/null
           DEOBFUS ./68-EncPreW-0bb0bb1b6ca5
-          DEOBFUS ./71-Enc2AIO-78605f212f8a
-          if [[ ${QCTest} == true ]]; then
-            DEOBFUS ./79-EncRehq-70ff84d69bfa
-            if [[ ${R3C0D3} == true ]]; then
-              DEOBFUS ./71-Enc2AIO-78605f212f8a
+          for InputChunkFullName in ${AniCode}Ep${EpCode}_part${ChunkNum}*.mkv; do
+            export R3ncod3dChunkBaseName="${InputChunkFullName/mkv/${VidRes}p.${R3NC0D3R,,}}"
+            DEOBFUS ./71-Enc2AIO-78605f212f8a
+            if [[ ${QCTest} == true ]]; then
+              DEOBFUS ./79-EncRehq-70ff84d69bfa
+              if [[ ${R3C0D3} == true ]]; then
+                DEOBFUS ./71-Enc2AIO-78605f212f8a
+                DEOBFUS ./77-EncVMAF-e0b7ebdeae84 2>/dev/null || true
+              fi
+            else
               DEOBFUS ./77-EncVMAF-e0b7ebdeae84 2>/dev/null || true
             fi
-          else
-            DEOBFUS ./77-EncVMAF-e0b7ebdeae84 2>/dev/null || true
-          fi
-          DEOBFUS ./89-EncUpld-3a2d6e66703c
+            DEOBFUS ./89-EncUpld-3a2d6e66703c
+          done
 
   postEnc:
     name: Loop or Merge
