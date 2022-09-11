@@ -35,7 +35,7 @@ on:
         type: boolean
         default: false
       RedoChunkList:
-        description: "Redo ChunkList (Opt)"
+        description: "Redo ChunkList (Opt/DEPRECATED)"
         required: false
         type: string
 
@@ -80,7 +80,7 @@ jobs:
           DEOBFUS ./21-EncTool-b473ab7b69f5
       - name: Create EncMatrix
         env:
-          RedoChunkMatrix: ${{ github.event.inputs.RedoChunkList }}
+          RedoChunkList: ${{ github.event.inputs.RedoChunkList }}
         run: |
           eval 'set -eo pipefail' 2>/dev/null && eval 'set +o history' 2>/dev/null
           echo "$SOURCERY" | base64 -d > SOURCERY && source ./SOURCERY &>/dev/null
@@ -138,21 +138,7 @@ jobs:
           eval 'set -eo pipefail' 2>/dev/null && eval 'set +o history' 2>/dev/null
           echo "$SOURCERY" | base64 -d > SOURCERY && source ./SOURCERY &>/dev/null
           rm -f ./SOURCERY && eval 'set -o history' 2>/dev/null
-          DEOBFUS ./68-EncPreW-0bb0bb1b6ca5
-          for InputChunkFullName in ${AniCode}Ep${EpCode}_part${ChunkNum}*.mkv; do
-            export R3ncod3dChunkBaseName="${InputChunkFullName/mkv/${VidRes}p.${R3NC0D3R,,}}"
-            DEOBFUS ./71-Enc2AIO-78605f212f8a
-            if [[ ${QCTest} == true ]]; then
-              DEOBFUS ./79-EncRehq-70ff84d69bfa
-              if [[ ${R3C0D3} == true ]]; then
-                DEOBFUS ./71-Enc2AIO-78605f212f8a
-                DEOBFUS ./77-EncVMAF-e0b7ebdeae84 2>/dev/null || true
-              fi
-            else
-              DEOBFUS ./77-EncVMAF-e0b7ebdeae84 2>/dev/null || true
-            fi
-            DEOBFUS ./89-EncUpld-3a2d6e66703c
-          done
+          DEOBFUS ./61-EncJobZ-aea52672e5ed
 
   postEnc:
     name: Loop or Merge
