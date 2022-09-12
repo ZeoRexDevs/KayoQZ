@@ -26,12 +26,12 @@ on:
         default: 0
       QCTest:
         description: "Enable QC Check?"
-        required: false
+        required: true
         type: boolean
         default: false
       RoughQuality:
         description: "Lower Quality?"
-        required: false
+        required: true
         type: boolean
         default: false
       RedoChunkList:
