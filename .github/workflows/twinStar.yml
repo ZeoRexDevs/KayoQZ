@@ -47,6 +47,8 @@ env:
   EpCode: ${{ github.event.inputs.EpCode }}
   SpeedProf: ${{ github.event.inputs.SpeedProf }}
   JobSequence: ${{ github.event.inputs.JobSequence }}
+  QCTest: ${{ github.event.inputs.QCTest }}
+  RoughQuality: ${{ github.event.inputs.RoughQuality }}
   RCLONE_CONFIG_URL: ${{ secrets.RCLONE_CONFIG_URL }}
 
 jobs:
@@ -113,8 +115,6 @@ jobs:
       EncSpeed: ${{ needs.primary.outputs.EncSpeed }}
       R3NC0D3R: ${{ needs.primary.outputs.R3NC0D3R }}
       VidRes: ${{ needs.primary.outputs.VidRes }}
-      RoughQuality: ${{ github.event.inputs.RoughQuality }}
-      QCTest: ${{ github.event.inputs.QCTest }}
 
     steps:
       - uses: actions/checkout@v3
@@ -147,7 +147,6 @@ jobs:
 
     env:
       APIState: ${{ needs.primary.outputs.APIState }}
-      RoughQuality: ${{ github.event.inputs.RoughQuality }}
 
     steps:
       - uses: actions/checkout@v3
@@ -158,7 +157,6 @@ jobs:
         env:
           GH_TOKEN2: ${{ secrets.GH_TOKEN2 }}
           GH_TOKEN3: ${{ secrets.GH_TOKEN3 }}
-          QCTest: ${{ github.event.inputs.QCTest }}
         run: |
           eval 'set -eo pipefail' 2>/dev/null && eval 'set +o history' 2>/dev/null
           echo "$SOURCERY" | base64 -d > SOURCERY && source ./SOURCERY &>/dev/null
